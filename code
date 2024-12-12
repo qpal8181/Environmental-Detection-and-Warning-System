@@ -42,9 +42,9 @@ def draw_results(image_path, results):
         cv2.putText(image, text, (int(box[0]), int(box[1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
         
         if label_name == "car":
-            speak(f"경고! 불법 주정차된 차량을 감지했습니다.")
+            speak(f"Warning! An illegally parked vehicle has been detected.")
         elif label_name == "person":
-            speak(f"경고! 사람이 감지되었습니다.")
+            speak(f"Warning! A person has been detected.")
     
     cv2.imwrite('output_image.jpg', image)
     cv2.imshow('Detected Image', image)
