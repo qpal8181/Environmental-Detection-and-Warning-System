@@ -14,16 +14,16 @@ def speak(text):
     engine.say(text)
     engine.runAndWait()
 
-def detect_objects(image_path):
-    image = Image.open(image_path)
+def detect_objects(C:\\Users\\username\\Pictures\\street.jpg):
+    image = Image.open(C:\\Users\\username\\Pictures\\street.jpg)
     inputs = processor(images=image, return_tensors="pt")
     outputs = model(**inputs)
     target_sizes = torch.tensor([image.size[::-1]])
     results = processor.post_process_object_detection(outputs, target_sizes=target_sizes, threshold=0.9)[0]
     return results
 
-def draw_results(image_path, results):
-    image = cv2.imread(image_path)
+def draw_results(C:\\Users\\username\\Pictures\\street.jpg, results):
+    image = cv2.imread(C:\\Users\\username\\Pictures\\street.jpg)
     for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
         label_name = processor.tokenizer.convert_ids_to_tokens(label.item())
         box = [round(i, 2) for i in box.tolist()]
