@@ -1,0 +1,55 @@
+import cv2
+import numpy as np
+import torch
+from transformers import DetrImageProcessor, DetrForObjectDetection
+import pyttsx3
+
+processor = DetrImageProcessor.from_pretrained("facebook/detr-resnet-50")
+model = DetrForObjectDetection.from_pretrained("facebook/detr-resnet-50")
+
+engine = pyttsx3.init()
+
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
+
+def detect_objects(frame):
+    pil_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    pil_image = Image.fromarray(pil_image)
+    inputs = processor(images=pil_image, return_tensors="pt")
+    outputs = model(**inputs)
+    target_sizes = torch.tensor([frame.shape[0:2][::-1]])
+    results = processor.post_process_object_detection(outputs, target_sizes=target_sizes, threshold=0.9)[0]
+    return results
+
+def draw_results(frame, results):
+    for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
+        label_name = processor.tokenizer.convert_ids_to_tokens(label.item())
+        box = [round(i, 2) for i in box.tolist()]
+        start_point = (int(box[0]), int(box[1]))
+        end_point = (int(box[2]), int(box[3]))
+        cv2.rectangle(frame, start_point, end_point, (0, 255, 0), 2)
+        text = f'{label_name} {round(score.item(), 3)}'
+        cv2.putText(frame, text, (int(box[0]), int(box[1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        if label_name == "car":
+            speak(f"경고! 불법 주정차된 차량을 감지했습니다.")
+        elif label_name == "person":
+            speak(f"경고! 사람이 감지되었습니다.")
+    return frame
+
+def main():
+    cap = cv2.VideoCapture(0)
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        results = detect_objects(frame)
+        frame = draw_results(frame, results)
+        cv2.imshow('Environment Detection & Warning System', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    main() 
